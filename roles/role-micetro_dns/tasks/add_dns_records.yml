@@ -1,0 +1,67 @@
+---
+- name: Create A record
+  block:
+    - ansible.builtin.debug:
+        msg: "Creating A record for {{ ansible_hostname }} in zone {{ zone }}"
+    - ansible.builtin.uri:
+        url: "{{ micetro_url }}/{{ zone_id }}/dnsRecords"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ session_token }}"
+          Content-Type: 'application/json'
+        body_format: json
+        body: '{ "dnsRecord": { "name": "{{ ansible_fqdn }}.", "type": "A", "ttl": "3600", "data": "{{ ansible_default_ipv4.address }}", "comment": "Test A record", "enabled": true, "aging": 0, "dnsZoneRef": "{{ zone_id }}", "customProperties": {} }, "saveComment": "Test A record",  "forceOverrideOfNamingConflictCheck": true }'
+        status_code: 201
+      register: a_record_reg
+    - ansible.builtin.debug:
+        var: a_record_reg
+      when: debug_mode | bool
+    - ansible.builtin.debug: 
+        msg: "Adding A record for {{ ansible_fqdn }} succeeded"
+      when: a_record_reg.status == 201
+  when: a_record_exists | bool == false
+
+- name: Create CNAME record
+  block:
+    - ansible.builtin.debug:
+        msg: "Creating CNAME record for {{ ansible_hostname }} in zone {{ zone }}"
+    - ansible.builtin.uri:
+        url: "{{ micetro_url }}/{{ zone_id }}/dnsRecords"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ session_token }}"
+          Content-Type: 'application/json'
+        body_format: json
+        body: '{ "dnsRecord": { "name": "CNAME-{{ ansible_hostname }}.", "type": "CNAME", "ttl": "3600", "data": "{{ ansible_fqdn }}.", "comment": "Test CNAME record", "enabled": true, "aging": 0, "dnsZoneRef": "{{ zone_id }}", "customProperties": {} }, "saveComment": "Test CNAME record",  "forceOverrideOfNamingConflictCheck": true }'
+        status_code: 201
+      register: cname_record_reg
+    - ansible.builtin.debug:
+        reg: cname_record_reg
+      when: debug_mode | bool
+    - ansible.builtin.debug: 
+        msg: "Adding CNAME record for {{ ansible_fqdn }} succeeded"
+      when: cname_record_reg.status == 201
+  when: a_record_exists | bool == false
+
+# Not to be used as Micetro automatically creates PTR records in the correct reverse lookup zone when the A record is added
+- name: Create a test PTR record
+  block:
+    - ansible.builtin.debug:
+        msg: "Creating PTR record for {{ ansible_hostname }} in zone {{ zone }}"
+    - ansible.builtin.uri:
+        url: "{{ micetro_url }}/{{ zone_id }}/dnsRecords"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ session_token }}"
+          Content-Type: 'application/json'
+        body_format: json
+        body: '{ "dnsRecord": { "name": "{{ ptr_record_name }}.", "type": "PTR", "ttl": "3600", "data": "{{ ansible_fqdn }}.", "comment": "Test PTR record", "enabled": true, "aging": 0, "dnsZoneRef": "{{ zone_id }}", "customProperties": {} }, "saveComment": "Test PTR record",  "forceOverrideOfNamingConflictCheck": true }'
+        status_code: 201
+      register: ptr_record_reg
+    - ansible.builtin.debug:
+        reg: ptr_record_reg
+      when: debug_mode | bool
+     - ansible.builtin.debug: 
+        msg: "Adding PTR record for {{ test_fqdn }} succeeded"
+      when: ptr_record_reg.status == 201
+  when: a_record_exists | bool == false
