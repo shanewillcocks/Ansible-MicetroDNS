@@ -1,0 +1,64 @@
+---
+- name: Remove A records
+  block:
+    - ansible.builtin.debug:
+        msg: "Deleting A records for {{ ansible_hostname }}"
+    - ansible.builtin.uri:
+        url: "{{ micetro_url}}/{{ item }}"
+        method: DELETE 
+        headers:
+          Authorization: "Bearer {{ session_token }}"
+          Content-Type: 'application/json' 
+        status_code: 204
+      loop: "{{ a_ref_list }}"
+      register: del_a_record_reg
+    - ansible.builtin.debug:
+        var: del_a_record_reg   
+      when: debug_mode | bool 
+    - ansible.builtin.debug: 
+        msg: "Delete of A record(s) for {{ ansible_fqdn }} succeeded" 
+      when: del_a_record_reg.msg is match('All items completed')
+  when: a_record_exists | bool
+
+- name: Remove CNAME records
+  block:
+    - ansible.builtin.debug:
+        msg: "Deleting CNAME records for {{ ansible_hostname }}"
+    - ansible.builtin.uri:
+        url: "{{ micetro_url }}/{{ item }}"
+        method: DELETE
+        headers:
+          Authorization: "Bearer {{ session_token }}"
+          Content-Type: 'application/json'
+        status_code: 204
+      loop: "{{ cname_ref_list }}"
+      register: del_cname_record_reg
+    - ansible.builtin.debug:
+        var: del_cname_record_reg   
+      when: debug_mode | bool 
+    - ansible.builtin.debug: 
+        msg: "Delete of CNAME record(s) for {{ ansible_fqdn }} succeeded" 
+      when: del_cname_record_reg.msg is match('All items completed')
+  when: cname_record_exists | bool 
+
+# NOT USED - Micetro will automatically delete a PTR record when the corresponding A record is deleted
+#- name: Remove PTR records
+#  block:
+#    - ansible.builtin.debug:
+#        msg: "Deleting PTR records for {{ ansible_hostname }}"
+#    - ansible.builtin.uri:
+#        url: "{{ micetro_url }}/{{ item }}"
+#        method: DELETE
+#        headers:
+#          Authorization: "Bearer {{ session_token }}"
+#          Content-Type: 'application/json' 
+#        status_code: 204 
+#      loop: "{{ ptr_ref_list }}"
+#      register: del_ptr_record_reg
+#    - ansible.builtin.debug:
+#        var: del_ptr_record_reg   
+#      when: debug_mode | bool 
+#    - ansible.builtin.debug: 
+#        msg: "Delete of PTR record(s) for {{ ansible_fqdn }} succeeded" 
+#      when: del_ptr_record_reg.msg is match('All items completed')  
+#  when: ptr_record_exists | bool
