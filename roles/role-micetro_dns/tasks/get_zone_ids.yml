@@ -1,0 +1,33 @@
+---
+- name: Retrieve forward lookup zone info
+  block:
+    - ansible.builtin.uri:
+        url: "{{ micetro_url }}/dnsZones?filter=name={{ zone }}"
+        method: GET 
+        headers:
+          Authorization: "Bearer {{ session_token }}"
+          Content-Type: 'application/json'
+        status_code: 200
+      register: zone_reg
+    - ansible.builtin.set_fact:
+        zone_id: "{{ zone_reg.json.result.dnsZones[0].ref }}"
+    - ansible.builtin.debug: 
+        msg: "{{ zone }} Zone ID: {{ zone_id }}" 
+      when: debug_mode | bool  
+
+- name: Retrieve reverse lookup zone info
+  block:
+    - ansible.builtin.uri:
+        url: "{{ micetro_url }}/dnsZones?filter=name={{ ptr_reverse_zone }}"
+        method: GET 
+        headers:
+          Authorization: "Bearer {{ session_token }}"
+          Content-Type: 'application/json'
+        status_code: 200
+      register: rev_zone_reg
+    - ansible.builtin.set_fact:
+        rev_zone_id: "{{ rev_zone_reg.json.result.dnsZones[0].ref }}"
+    - ansible.builtin.debug: 
+        msg: "{{ ptr_reverse_zone }} Zone ID: {{ rev_zone_id }}" 
+      when: debug_mode | bool
+      
