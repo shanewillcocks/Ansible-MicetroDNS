@@ -1,0 +1,84 @@
+---
+# Search for an existing A record
+# Save results as a list in case we get multiple entries - unlikely
+- name: Find A records in "{{ zone }}"
+  block:
+    - ansible.builtin.uri:
+        url: "{{ micetro_url }}/{{ zone_id }}/dnsRecords?filter=name={{ ansible_hostname }}"
+        method: GET 
+        status_code: 200 
+        headers:
+          Authorization: "Bearer {{ session_token }}"
+          Content-Type: 'application/json' 
+      register: a_record_reg 
+    - ansible.builtin.debug:
+        msg: "No existing A record found for {{ ansible_hostname }} in zone {{ zone }}"
+      when: a_record_reg.json.result.totalResults == 0
+    - block:
+        - ansible.builtin.debug:
+            msg: "Found {{ a_record_reg.json.result.totalResults }} A record(s) in {{ zone }}"
+        - ansible.builtin.set_fact:
+            a_ref_list: "{{ a_ref_list | default([]) + [ item.ref ] }}"
+          loop: "{{ a_record_reg.json.result.dnsRecords }}"
+        - ansible.builtin.debug: 
+            msg: "Got A record ref: {{ item }}"
+          loop: "{{ a_ref_list }}"
+          when: debug_mode | bool 
+        - ansible.builtin.set_fact:
+            a_record_exists: true
+      when: a_record_reg.json.result.totalResults >= 1
+
+- name: Find CNAME records in "{{ zone }}"
+  block:
+    - ansible.builtin.uri:
+        url: "{{ micetro_url }}/{{ zone_id }}/dnsRecords?filter=data={{ ansible_hostname }}"
+        method: GET 
+        status_code: 200 
+        headers:
+          Authorization: "Bearer {{ session_token }}"
+          Content-Type: 'application/json' 
+      register: cname_record_reg 
+    - ansible.builtin.debug:
+        msg: "No existing CNAME record found for {{ ansible_hostname}} in zone {{ zone }}"
+      when: cname_record_reg.json.result.totalResults == 0
+    - block:
+        - ansible.builtin.debug:
+            msg: "Found {{ cname_record_reg.json.result.totalResults }} CNAME record(s) in {{ zone }}"
+        - ansible.builtin.set_fact:
+            cname_ref_list: "{{ cname_ref_list | default([]) + [ item.ref ] }}"
+          loop: "{{ cname_record_reg.json.result.dnsRecords }}"  
+        - ansible.builtin.debug: 
+            var: "Got CNAME record ref: {{ item }}"
+          loop: "{{ cname_ref_list }}"
+          when: debug_mode | bool 
+        - ansible.builtin.set_fact:
+            cname_record_exists: true
+      when: cname_record_reg.json.result.totalResults >= 1
+
+# Search for PTR record in reverse lookup zone
+- name: Find PTR record DNS entry in {{ ptr_reverse_zone }}"
+  block:
+    - ansible.builtin.uri:
+        url: "{{ micetro_url }}/{{ rev_zone_id }}/dnsRecords?filter=data={{ ansible_fqdn }}."
+        method: GET 
+        status_code: 200 
+        headers:
+          Authorization: "Bearer {{ session_token }}"
+          Content-Type: 'application/json' 
+      register: ptr_record_reg   
+    - ansible.builtin.debug:
+        msg: "No existing PTR record found for {{ ansible_hostname }} in zone {{ ptr_reverse_zone }}"
+      when: ptr_record_reg.json.result.totalResults == 0
+    - block:
+        - ansible.builtin.debug:
+            msg: "Found {{ ptr_record_reg.json.result.totalResults }} PTR record(s) in {{ ptr_reverse_zone }}"
+        - ansible.builtin.set_fact:
+            ptr_ref_list: "{{ ptr_ref_list | default([]) + [ item.ref ] }}"
+          loop: "{{ ptr_record_reg.json.result.dnsRecords }}"
+        - ansible.builtin.debug:
+            msg: "Got PTR record ref: {{ item }}"
+          loop: "{{ ptr_ref_list }}" 
+          when: debug_mode | bool
+        - ansible.builtin.set_fact:
+            ptr_record_exists: true
+      when: ptr_record_reg.json.result.totalResults >= 1
