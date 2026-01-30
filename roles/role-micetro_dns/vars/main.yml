@@ -1,0 +1,9 @@
+---
+micetro_url: https://<micetro_hostname>/mmws/api/v2
+zone: <dns_zone_name>. # Dot suffix required
+micetro_user: "{{ lookup('env','MICETRO_USER') }}"
+micetro_pwd: "{{ lookup('env','MICETRO_PASSWORD') }}"
+a_record_exists: false 
+cname_record_exists: false 
+ptr_record_exists: false
+debug_mode: true
