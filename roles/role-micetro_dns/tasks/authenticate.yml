@@ -1,0 +1,19 @@
+---
+- block:
+    - ansible.builtin.debug:
+        msg: "Authenticating to Micetro as {{ micetro_user }}"
+    - ansible.builtin.uri:
+        url: "{{ micetro_url }}/micetro/sessions"
+        method: POST
+        status_code: 201
+        headers:
+          Accept: 'application/json'
+          Content-Type: 'application/json'
+        body: '{ "loginName": "{{ micetro_user }}", "password": "{{ micetro_pwd }}" }' 
+        body_format: json
+      register: session_reg
+    - ansible.builtin.set_fact:
+        session_token: "{{ session_reg.json.result.session }}"
+    - ansible.builtin.debug:
+        msg: "Authentication succeeded" 
+      when: session_reg.status == 201
