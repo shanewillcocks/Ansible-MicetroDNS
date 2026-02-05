@@ -23,7 +23,6 @@
   ansible.builtin.debug: 
     msg:
       - "PTR record name is: {{ ptr_record_name }}"
-      - "PTR record data is: {{ ansible_fqdn }}."
       - "Reverse lookup zone is: {{ ptr_reverse_zone }}"
   when: debug_mode | bool
   
