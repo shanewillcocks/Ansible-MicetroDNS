@@ -1,0 +1,19 @@
+---
+- ansible.builtin.set_fact:
+    ip_addr: "{{ ansible_default_ipv4.address }}"
+# Set the correct name for the PTR record
+- ansible.builtin.set_fact:
+    ip_addr_rev: "{{ ip_addr | split('.') | reverse }}"
+- ansible.builtin.set_fact:
+    ptr_record_name: "{{ ip_addr_rev | join('.') }}.in-addr.arpa."
+# Set the correct name for the reverse lookup zone
+- ansible.builtin.set_fact:
+    ptr_reverse_zone: "{{ ip_addr_rev[-2:] | join('.') }}.in-addr.arpa."
+
+- name: Dump facts
+  ansible.builtin.debug: 
+    msg:
+      - "PTR record name is: {{ ptr_record_name }}"
+      - "PTR record data is: {{ ansible_fqdn }}."
+      - "Reverse lookup zone is: {{ ptr_reverse_zone }}"
+  when: debug_mode | bool 
