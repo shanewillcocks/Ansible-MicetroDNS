@@ -1,24 +1,8 @@
 ---
-- ansible.builtin.set_fact:
-    ip_addr: "{{ ansible_default_ipv4.address }}"
-# Set the correct name for the PTR record
-- ansible.builtin.set_fact:
-    ip_addr_rev: "{{ ip_addr | split('.') | reverse }}"
-- ansible.builtin.set_fact:
-    ptr_record_name: "{{ ip_addr_rev | join('.') }}.in-addr.arpa."
-# Set the correct name for the reverse lookup zone
-- ansible.builtin.set_fact:
-    ptr_reverse_zone: "{{ ip_addr_rev[-2:] | join('.') }}.in-addr.arpa."
+- name: Set PTR record facts
+  ansible.builtin.include_tasks: set_ptr_info.yml
 
-- name: Dump facts
-  ansible.builtin.debug: 
-    msg:
-      - "PTR record name is: {{ ptr_record_name }}"
-      - "PTR record data is: {{ ansible_fqdn }}."
-      - "Reverse lookup zone is: {{ ptr_reverse_zone }}"
-  when: debug_mode | bool 
-
-- name: authenticate to Micetro API 
+- name: Authenticate to Micetro API 
   ansible.builtin.include_tasks: authenticate.yml 
 
 # Need zone ID's for subsequent API calls
