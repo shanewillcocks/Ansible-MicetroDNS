@@ -4,13 +4,15 @@
     - ansible.builtin.debug:
         msg: "Deleting A records for {{ ansible_hostname }}"
     - ansible.builtin.uri:
-        url: "{{ micetro_url}}/{{ item }}"
+        url: "{{ micetro_url}}/{{ a_ref }}"
         method: DELETE 
         headers:
           Authorization: "Bearer {{ session_token }}"
           Content-Type: 'application/json' 
         status_code: 204
       loop: "{{ a_ref_list }}"
+      loop_control:
+        loop_var: a_ref
       register: del_a_record_reg
     - ansible.builtin.debug:
         var: del_a_record_reg   
@@ -25,13 +27,15 @@
     - ansible.builtin.debug:
         msg: "Deleting CNAME records for {{ ansible_hostname }}"
     - ansible.builtin.uri:
-        url: "{{ micetro_url }}/{{ item }}"
+        url: "{{ micetro_url }}/{{ c_ref }}"
         method: DELETE
         headers:
           Authorization: "Bearer {{ session_token }}"
           Content-Type: 'application/json'
         status_code: 204
       loop: "{{ cname_ref_list }}"
+      loop_control:
+        loop_var: c_ref
       register: del_cname_record_reg
     - ansible.builtin.debug:
         var: del_cname_record_reg   
@@ -47,13 +51,15 @@
 #    - ansible.builtin.debug:
 #        msg: "Deleting PTR records for {{ ansible_hostname }}"
 #    - ansible.builtin.uri:
-#        url: "{{ micetro_url }}/{{ item }}"
+#        url: "{{ micetro_url }}/{{ p_ref }}"
 #        method: DELETE
 #        headers:
 #          Authorization: "Bearer {{ session_token }}"
 #          Content-Type: 'application/json' 
 #        status_code: 204 
 #      loop: "{{ ptr_ref_list }}"
+#      loop_control:
+#        loop_var: p_ref
 #      register: del_ptr_record_reg
 #    - ansible.builtin.debug:
 #        var: del_ptr_record_reg   
