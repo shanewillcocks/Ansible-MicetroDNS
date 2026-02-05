@@ -18,11 +18,12 @@
         - ansible.builtin.debug:
             msg: "Found {{ a_record_reg.json.result.totalResults }} A record(s) in {{ zone }}"
         - ansible.builtin.set_fact:
-            a_ref_list: "{{ a_ref_list | default([]) + [ item.ref ] }}"
+            a_ref_list: "{{ a_ref_list | default([]) + [ a_ref.ref ] }}"
           loop: "{{ a_record_reg.json.result.dnsRecords }}"
+          loop_control:
+            loop_var: a_ref
         - ansible.builtin.debug: 
-            msg: "Got A record ref: {{ item }}"
-          loop: "{{ a_ref_list }}"
+            var: a_ref_list
           when: debug_mode | bool 
         - ansible.builtin.set_fact:
             a_record_exists: true
@@ -45,11 +46,12 @@
         - ansible.builtin.debug:
             msg: "Found {{ cname_record_reg.json.result.totalResults }} CNAME record(s) in {{ zone }}"
         - ansible.builtin.set_fact:
-            cname_ref_list: "{{ cname_ref_list | default([]) + [ item.ref ] }}"
-          loop: "{{ cname_record_reg.json.result.dnsRecords }}"  
+            cname_ref_list: "{{ cname_ref_list | default([]) + [ c_ref.ref ] }}"
+          loop: "{{ cname_record_reg.json.result.dnsRecords }}"
+          loop_control:
+            loop_var: c_ref
         - ansible.builtin.debug: 
-            var: "Got CNAME record ref: {{ item }}"
-          loop: "{{ cname_ref_list }}"
+            var: cname_ref_list
           when: debug_mode | bool 
         - ansible.builtin.set_fact:
             cname_record_exists: true
@@ -73,11 +75,12 @@
         - ansible.builtin.debug:
             msg: "Found {{ ptr_record_reg.json.result.totalResults }} PTR record(s) in {{ ptr_reverse_zone }}"
         - ansible.builtin.set_fact:
-            ptr_ref_list: "{{ ptr_ref_list | default([]) + [ item.ref ] }}"
+            ptr_ref_list: "{{ ptr_ref_list | default([]) + [ p_ref.ref ] }}"
           loop: "{{ ptr_record_reg.json.result.dnsRecords }}"
+          loop_control:
+            loop_var: p_ref
         - ansible.builtin.debug:
-            msg: "Got PTR record ref: {{ item }}"
-          loop: "{{ ptr_ref_list }}" 
+            var: ptr_ref_list
           when: debug_mode | bool
         - ansible.builtin.set_fact:
             ptr_record_exists: true
